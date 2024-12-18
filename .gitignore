@@ -2,6 +2,7 @@
 *.html
 out.*
 *.db
+LUEMUT.txt
 
 __pycache__/
 *.py[cod]
