@@ -1,0 +1,10 @@
+# ESA-SCOPE DOC model python requirements
+numpy
+xarray
+dask
+netcdf4
+pandas
+scikit-learn==1.5.2
+matplotlib
+tensorflow==2.15.0
+ipykernel

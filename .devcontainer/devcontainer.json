@@ -1,0 +1,22 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+{
+	"name": "SCOPE-DOC",
+	"build": {
+	    "context": "..",
+	    "dockerfile": "../Dockerfile"
+	},
+   // needed for podman
+	"runArgs": ["--userns=keep-id"],
+	"containerEnv": {
+		"HOME": "/home/jovyan"
+	  },
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": ["ms-python.python", "ms-toolsai.jupyter"]
+		}
+	}
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}
