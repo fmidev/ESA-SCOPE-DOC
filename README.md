@@ -2,7 +2,7 @@
 
 ## Model
 
-Model is based on neural network and it is implemented using tensorflow/keras package in Python.
+Model is based on neural network and it is implemented using pytorch package in Python.
 
  - In-situ DOC data is used as training data set.
  - The trained model is used to calculate monthly estimates in 1/24° spatial grid.

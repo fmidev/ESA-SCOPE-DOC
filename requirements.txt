@@ -3,8 +3,14 @@ numpy
 xarray
 dask
 netcdf4
+tables
 pandas
-scikit-learn==1.5.2
+scikit-learn==1.6.0
 matplotlib
-tensorflow==2.15.0
 ipykernel
+# Pytorch
+torch==2.5.1
+torchvision
+torchaudio
+pytorch_lightning==2.5.0.post0
+tensorboard==2.18.0
