@@ -6,11 +6,11 @@ Model is based on neural network and it is implemented using pytorch package in 
 
  - In-situ DOC data is used as training data set.
  - The trained model is used to calculate monthly estimates in 1/24° spatial grid.
- - Validation using leave one year out.
+ - TODO: Validation using leave one year out.
 
-Features: 6 wavelengths of Rrs, SST, salinity, PP, lat, dts.
+Features used in the model: 6 wavelengths of Ocean Colour reflectance (Rrs), sea surface temperature (SST), salinity, primary production (PP), latitude (lat), and distance to shore (dts).
 
-The model uses 1D convolution for Rrs using 8 filters and kernel size 2, and dense layer with width 32 for other features.
+The model uses 1D convolution for Rrs using 8 filters and kernel size 2, and dense layer with width 32 for other explanatory features.
 
 ## Data
 

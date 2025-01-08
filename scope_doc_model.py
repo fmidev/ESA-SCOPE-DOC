@@ -1,7 +1,8 @@
 """
 ESA SCOPE project DOC model
 
-This module contains the DOC model for the ESA SCOPE project. The model is based on the Torch library and is implemented
+This module contains the DOC model for the ESA SCOPE project.
+The model is based on the Torch library.
 
 """
 
@@ -27,7 +28,7 @@ from sklearn.model_selection import train_test_split
 # from sklearn.inspection import permutation_importance
 from sklearn import preprocessing
 
-from scope_config import Rrs, units
+from scope_config import Rrs, units, MODEL_DIR
 
 def get_torch_device():
     device = "cpu"
@@ -153,7 +154,7 @@ class DOCModule(pl.LightningModule):
         return y
 
 
-def load_model(model_version, modeldir='models', device='mps'):
+def load_model(model_version, modeldir=MODEL_DIR, device='mps'):
     
     datafile = os.path.join(modeldir, f'torch_data_{model_version}.pkl')
     modelfile = os.path.join(modeldir, f'torch_model_{model_version}.pth')
@@ -167,7 +168,7 @@ def load_model(model_version, modeldir='models', device='mps'):
     return data, model
 
 
-def save_model(model_version, data, model, modeldir='models', device='mps'):
+def save_model(model_version, data, model, modeldir=MODEL_DIR, device='mps'):
     
     datafile = os.path.join(modeldir, f'torch_data_{model_version}.pkl')
     modelfile = os.path.join(modeldir, f'torch_model_{model_version}.pth')
