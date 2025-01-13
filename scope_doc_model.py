@@ -99,19 +99,20 @@ class DOCModule(pl.LightningModule):
 
         self.Rrs_encoder_channels = 8
         self.Rrs_encoder_kernel = 2
+        self.layer_width = 32
         
         self.Rrs_encoder = nn.Sequential(
             nn.Conv1d(in_channels=1, out_channels=self.Rrs_encoder_channels, kernel_size=self.Rrs_encoder_kernel),
             nn.ReLU(),
             nn.Flatten(),
         )
-        Rrs_encoder_shape = (self.num_Rrs - (self.Rrs_encoder_kernel - 1)) * self.Rrs_encoder_channels ## == 40
+        Rrs_encoder_shape = (self.num_Rrs - (self.Rrs_encoder_kernel - 1)) * self.Rrs_encoder_channels
         self.linear = nn.Sequential(
-            nn.Linear(Rrs_encoder_shape + self.num_features, 32),
+            nn.Linear(Rrs_encoder_shape + self.num_features, self.layer_width),
             nn.ReLU(),
         )
         self.out = nn.Sequential(
-            nn.Linear(32, 1)
+            nn.Linear(self.layer_width, 1)
         )
 
     def forward(self, Rrs, features):
@@ -142,6 +143,9 @@ class DOCModule(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = optim.Adam(self.parameters(), lr=self.lr)
         return optimizer
+    
+    def fit(self, X):
+        return self
     
     def predict(self, X):
         if not isinstance(X, torch.Tensor):
@@ -194,7 +198,17 @@ def save_model(model_version, data, model, modeldir=MODEL_DIR, device='mps'):
 
 
 def estimate_DOC(ds, model, data, mindoc=0.0001):
-    """Estimate DOC using the model."""
+    """Estimate Dissolved Organic Carbon (DOC).
+    
+    Parameters:
+    ds (xarray.Dataset): Input dataset containing the data to be used for prediction.
+    model: Trained model used to predict DOC values.
+    data: Data for the model, including variable names and the scaling.
+    mindoc (float, optional): Minimum DOC value to ensure non-negative predictions. Default is 0.0001.
+
+    Returns:
+    xarray.Dataset: Dataset containing the estimated DOC values with the same coordinates as the input dataset.
+    """
     names = data['names']
     scaler = data['scaler']
     df = ds.to_dataframe()  # to pandas data frame
