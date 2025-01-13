@@ -43,7 +43,7 @@ This dataset provides daily-mean sea surface temperatures (SST), presented on gl
 
 Citable as:  Good, S.A.; Embury, O. (2024): ESA Sea Surface Temperature Climate Change Initiative (SST_cci): Level 4 Analysis product, version 3.0. NERC EDS Centre for Environmental Data Analysis, 09 April 2024. doi:10.5285/4a9654136a7148e39b7feb56f8bb02d2. https://dx.doi.org/10.5285/4a9654136a7148e39b7feb56f8bb02d2
 
-Available for 1998-2021. The daily data are used to calculate monthly averages that are used in the model. (Only partly now, data for 2010-2018 is from PLM/Bror.)
+Available for 1998-2021. The daily data are used to calculate monthly averages that are used in the model. (Only partly now, data for 2010-2018 is from PML/Bror.)
 
 ### Salinity 
 
