@@ -2,7 +2,7 @@
 ESA SCOPE project DOC model
 
 This module contains the DOC model for the ESA SCOPE project.
-The model is based on the Torch library.
+The model is based on the PyTorch package.
 
 """
 
@@ -41,21 +41,36 @@ def get_torch_device():
 
 # data loader
 class DOCDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: str, variables: list, Rrs: list, val_size: float, batch_size: int = 16, num_workers: int = 0):
+    def __init__(self, data: str, variables: list, Rrs: list, val_size: float, batch_size: int = 16, num_workers: int = 0, year=None):
         super().__init__()
-        self.data_dir = data_dir
+        self.data = data
         self.variables = variables
         self.val_size = val_size
         self.batch_size = batch_size
         self.Rrs = Rrs
         self.names = self.Rrs + self.variables
         self.num_workers = num_workers
+        self.year = year  # loo cv year
 
 
     def setup(self, stage=None):
         allvars = ['DOC'] + self.Rrs + self.variables
-        data = pd.read_hdf(self.data_dir)
+        # data = pd.read_hdf(self.data_dir)
+        if isinstance(self.data, str):
+            data = pd.read_hdf(self.data)
+        else:
+            data = self.data
         data = data.sort_values(by='time')
+        
+        if self.year is not None:
+            # select one year as a cv test data not used in training
+            years = data.time.dt.year
+            data_test = data.loc[years == self.year]
+            data_test = data_test[allvars].dropna()
+            self.y_test = data_test['DOC'].values
+            self.X_test = data_test[self.Rrs + self.variables].values.copy()
+            data = data.loc[years != self.year]
+
         data = data[allvars].dropna()
         y = data['DOC'].values
         X = data[self.Rrs + self.variables].values.copy()
@@ -72,6 +87,11 @@ class DOCDataModule(pl.LightningDataModule):
         self.X_val = torch.tensor(X_val, dtype=torch.float32)
         self.y_train = torch.tensor(y_train, dtype=torch.float32).view(-1, 1)
         self.y_val = torch.tensor(y_val, dtype=torch.float32).view(-1, 1)
+        
+        if self.year is not None:
+            self.X_test = self.scaler.transform(self.X_test)
+            self.X_test = torch.tensor(self.X_test, dtype=torch.float32)
+            self.y_test = torch.tensor(self.y_test, dtype=torch.float32).view(-1, 1)
 
     def train_dataloader(self):
         spectral = self.X_train[:, :len(self.Rrs)].unsqueeze(1)
@@ -87,6 +107,13 @@ class DOCDataModule(pl.LightningDataModule):
         return DataLoader(dataset, batch_size=1, shuffle=False,
                           num_workers=self.num_workers)
     
+    def test_dataloader(self):
+        spectral = self.X_test[:, :len(self.Rrs)].unsqueeze(1)
+        features = self.X_test[:, len(self.Rrs):]
+        dataset = TensorDataset(spectral, features, self.y_val)
+        return DataLoader(dataset, batch_size=1, shuffle=False,
+                          num_workers=self.num_workers)
+
 
 # model
 class DOCModule(pl.LightningModule):
@@ -197,7 +224,7 @@ def save_model(model_version, data, model, modeldir=MODEL_DIR, device='mps'):
     return
 
 
-def estimate_DOC(ds, model, data, mindoc=0.0001):
+def estimate_DOC(ds, model, data, mindoc=0.0001, keep_input=False):
     """Estimate Dissolved Organic Carbon (DOC).
     
     Parameters:
@@ -221,14 +248,18 @@ def estimate_DOC(ds, model, data, mindoc=0.0001):
     mpred[inds] = model.predict(X[inds, :]).ravel()
     mpred = np.maximum(mpred, mindoc)  # some predictions might be negative
     
-    out = xr.Dataset(coords=ds.coords)  # generate new dataset for output
+    if keep_input:
+        out = ds.copy()
+    else:
+        out = xr.Dataset(coords=ds.coords)  # generate new dataset for output
     out['DOC'] = (['lat', 'lon'], mpred.reshape((len(out.lat), len(out.lon))))
     out['DOC'].attrs['long_name'] = f'estimated DOC'
     out['DOC'].attrs['units'] = units['DOC']
     return out
 
 
-def get_trainer(save_dir="/tmp", accelerator='mps', max_epochs=400):
+def get_trainer(save_dir="/tmp", accelerator='mps', max_epochs=400,
+                enable_progress_bar=True, enable_checkpointing=True):
 
     tb_logger = TensorBoardLogger(save_dir=save_dir)
 
@@ -240,11 +271,11 @@ def get_trainer(save_dir="/tmp", accelerator='mps', max_epochs=400):
                                         mode="min", patience=10)
     trainer = pl.Trainer(
         accelerator=accelerator,
-        enable_progress_bar=True,
-        enable_checkpointing=True,
+        enable_progress_bar=enable_progress_bar,
+        enable_checkpointing=enable_checkpointing,
         logger=tb_logger,
         max_epochs=max_epochs,
-        callbacks=[checkpoint_callback, early_stopping_callback],
+        callbacks=[checkpoint_callback, early_stopping_callback] if enable_checkpointing else [early_stopping_callback],
         log_every_n_steps=4
     )
     return trainer
