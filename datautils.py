@@ -282,10 +282,11 @@ def savenc(ds, file, complevel=5):
 def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True):
     """Generate monthly dataset to be used as input to the DOC model."""
 
-    rename = {'so': 'salt', 'sst': 'temp', 'bathymetry': 'depth'}
+    # rename = {'so': 'salt', 'sst': 'temp', 'bathymetry': 'depth'}
+    rename = {'so': 'salt', 'sst': 'temp'}
     
     dts = open_dts().load()
-    depths = open_bathymetry().load()
+    # depths = open_bathymetry().load()
     oc = open_oc(year, month, vars=Rrs, load=load)
     npp = open_pp(year, month, load=load).astype(DTYPE)
     if coarsen > 0:
@@ -302,7 +303,7 @@ def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True):
     #par = par.reindex_like(npp, method='nearest')
     sst = sst.reindex_like(npp, method='nearest')
     dts = dts.reindex_like(npp, method='nearest')
-    depth = depths.reindex_like(npp, method='nearest')
+    # depth = depths.reindex_like(npp, method='nearest')
 
     # combine all
     out = sss.to_dataset().merge(npp)
@@ -310,7 +311,7 @@ def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True):
     out = out.merge(oc, compat='override')
     out = out.merge(sst, compat='override')
     out = out.merge(dts, compat='override')
-    out = out.merge(depth, compat='override')
+    # out = out.merge(depth, compat='override')
     
     # rename some variables
     out = out.drop_vars(list(rename.values()) , errors='ignore')
@@ -321,7 +322,7 @@ def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True):
     # fix some attributes
     out['dts'].attrs['long_name'] = 'distance to shore'
     out['dts'].attrs['units'] = 'km'
-    out['depth'].attrs['long_name'] = 'water depth'
-    out['depth'].attrs['units'] = 'm'
+    # out['depth'].attrs['long_name'] = 'water depth'
+    # out['depth'].attrs['units'] = 'm'
 
     return out
