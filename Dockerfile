@@ -9,4 +9,4 @@ COPY requirements.txt /opt/requirements.txt
 RUN pip install --upgrade --no-cache-dir --requirement /opt/requirements.txt
 
 USER user
-WORKDIR /home/user
+WORKDIR /workspace

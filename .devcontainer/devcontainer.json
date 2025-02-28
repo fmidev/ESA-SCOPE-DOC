@@ -9,7 +9,7 @@
    // needed for podman
 	"runArgs": ["--userns=keep-id"],
 	"containerEnv": {
-		"HOME": "/home/user"
+		"HOME": "/workspace"
 	  },
 	// Configure tool-specific properties.
 	"customizations": {
