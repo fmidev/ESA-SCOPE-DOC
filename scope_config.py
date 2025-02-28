@@ -20,8 +20,6 @@ DTYPE = float32
 # directory for permanent data
 DATADIR = os.path.expanduser('~/DATA/ESA-SCOPE/')
 # directory to (temporarily) store the downloaded files
-#CACHE_DIR = '/var/tmp/ESA-SCOPE-cache'
-#CACHE_DIR = '/usr/local/share/DATA/ESA-SCOPE-cache'
 CACHE_DIR = '/Volumes/Samsung_T7/data/ESA-SCOPE'
 
 # directory to store model weights and data
