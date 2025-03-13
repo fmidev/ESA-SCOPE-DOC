@@ -86,7 +86,9 @@ def open_salinity(year, month, day=None, load=False):
         ds = ds['so'].isel(depth=0).rename({'latitude': 'lat', 'longitude': 'lon'})
         ds.to_netcdf(local_file)
     else:
-        ds = xr.open_dataarray(local_file)    
+        ds = xr.open_dataset(local_file)
+        if "depth" in ds.dims:  # original data
+            ds = ds['so'].isel(depth=0).rename({'latitude': 'lat', 'longitude': 'lon'})
     if load:
         ds.load()
     return ds.isel(time=0)
@@ -103,7 +105,7 @@ def open_oc(year, month, vars=Rrs, load=True):
         ds = ds.sel(time=time)[vars]
         ds.to_netcdf(local_file)
     else:  # load all variables from local file
-        ds = xr.open_dataset(local_file)
+        ds = xr.open_dataset(local_file)[vars]
     if load:
         ds.load()
     return ds
@@ -225,9 +227,18 @@ def open_sst_monthly(year, month, load=False, use_plm_sst=USE_PML_SST):
     if use_plm_sst & (year >= 2010) & (year <= 2018):
         return open_pmlsst(year, month, load=load)
     
+
     local_file = datafiles['SST'].format(year, month)
     if os.path.exists(local_file):
-        ds = xr.open_dataarray(local_file).isel(time=0)  # remove time here
+        ds = xr.open_dataset(local_file).isel(time=0)  # remove time here
+        vars = ds.data_vars
+        if 'analysed_sst' in vars:
+            ds = ds.rename({'analysed_sst': 'sst'})
+        ds = ds['sst']
+        if ds.max() > 100:
+            ds = ds - 273.15
+        if load:
+            ds.load()
         return ds
 
     # else load each day and update mean    
