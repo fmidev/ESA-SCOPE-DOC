@@ -89,6 +89,8 @@ def open_salinity(year, month, day=None, load=False):
         ds = xr.open_dataset(local_file)
         if "depth" in ds.dims:  # original data
             ds = ds['so'].isel(depth=0).rename({'latitude': 'lat', 'longitude': 'lon'})
+        else:
+            ds = ds['so']
     if load:
         ds.load()
     return ds.isel(time=0)
