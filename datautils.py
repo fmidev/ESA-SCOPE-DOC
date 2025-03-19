@@ -79,16 +79,19 @@ def open_clorys(variables, year, month=None, day=None, load=False):
     return ds
 
 
-def open_salinity(year, month, day=None, load=False):
-    local_file = datafiles['SSS'].format(year, month)
-    if not os.path.exists(local_file):
+def open_salinity(year, month, day=None, load=False, file=None):
+    if file is None:
+        file = datafiles['SSS'].format(year, month)
+    if not os.path.exists(file):
         ds = open_clorys(['so'], year=year, month=month, day=day, load=load)
         ds = ds['so'].isel(depth=0).rename({'latitude': 'lat', 'longitude': 'lon'})
-        ds.to_netcdf(local_file)
+        ds.to_netcdf(file)
     else:
-        ds = xr.open_dataset(local_file)
+        ds = xr.open_dataset(file)
         if "depth" in ds.dims:  # original data
             ds = ds['so'].isel(depth=0).rename({'latitude': 'lat', 'longitude': 'lon'})
+            #ds = ds.transpose("time", "lon", "lat")
+            #ds = ds.transpose("lat", "lon", "time")
         else:
             ds = ds['so']
     if load:
@@ -97,17 +100,18 @@ def open_salinity(year, month, day=None, load=False):
 
 
 # monthly oc data
-def open_oc(year, month, vars=Rrs, load=True):
-    """OC data loader."""
+def open_oc(year, month, vars=Rrs, load=True, file=None):
+    """OC data loader."""    
     url = urls['oc_monthly']
-    local_file = datafiles['OC'].format(year, month)
-    if not os.path.exists(local_file):
+    if file is None:
+        file = datafiles['OC'].format(year, month)
+    if not os.path.exists(file):
         time = f'{year}-{month:02d}-01'
         ds = xr.open_dataset(url)
         ds = ds.sel(time=time)[vars]
-        ds.to_netcdf(local_file)
+        ds.to_netcdf(file)
     else:  # load all variables from local file
-        ds = xr.open_dataset(local_file)[vars]
+        ds = xr.open_dataset(file)[vars]
     if load:
         ds.load()
     return ds
@@ -164,10 +168,11 @@ def open_pmlsst(year, month, load=False):
     return da
 
 
-def open_dts():
+def open_dts(file=None):
     """Read distance to shore data set."""
-    local_file = datafiles['dts']
-    dts = xr.open_dataset(local_file)
+    if file is None:
+        file = datafiles['dts']
+    dts = xr.open_dataset(file)
     dts = dts.rename({'longitude': 'lon', 'latitude': 'lat'})
     dts = dts.layer.rename('dts') / 1000  # to km
     return dts
@@ -180,9 +185,10 @@ def open_lsm(d=200):
     return lsm
 
 
-def open_bathymetry(load=True):
-    local_file = datafiles['bathy']
-    b = xr.open_dataset(local_file)
+def open_bathymetry(file=None, load=True):
+    if file is None:
+        file = datafiles['bathy']
+    b = xr.open_dataset(file)
     b = b['bathymetry']
     if load:
         b.load()
@@ -190,12 +196,15 @@ def open_bathymetry(load=True):
 
 
 # Phytoplankton Primary Production
-def open_pp(year, month, load=False):
+def open_pp(year, month, load=False, file=None):
     ppdir = CACHE_DIR
     os.makedirs(ppdir, exist_ok=True)
 
     remote_file = urls['pp'].format(year, month)
-    local_file = datafiles['PP'].format(year, month)
+    if file is None:
+        local_file = datafiles['PP'].format(year, month)
+    else:
+        local_file = file
     if not os.path.exists(local_file):
         request.urlretrieve(remote_file, local_file)
 
@@ -206,13 +215,15 @@ def open_pp(year, month, load=False):
 
 
 # Daily Mean Photosynthetically Available Radiation
-def open_par(year, month, load=False):
+def open_par(year, month, load=False, file=None):
     pardir = CACHE_DIR
     os.makedirs(pardir, exist_ok=True)
 
     remote_file = urls['par'].format(year, month)
-    local_file = datafiles['PAR'].format(year, month)
-
+    if file is None:
+        local_file = datafiles['PAR'].format(year, month)
+    else:
+        local_file = file
     if not os.path.exists(local_file):
         request.urlretrieve(remote_file, local_file)
 
@@ -223,16 +234,16 @@ def open_par(year, month, load=False):
     return da.isel(time=0)
 
 
-def open_sst_monthly(year, month, load=False, use_plm_sst=USE_PML_SST):
+def open_sst_monthly(year, month, load=False, use_plm_sst=USE_PML_SST, file=None):
     """Global monthly mean SST."""
 
     if use_plm_sst & (year >= 2010) & (year <= 2018):
         return open_pmlsst(year, month, load=load)
     
-
-    local_file = datafiles['SST'].format(year, month)
-    if os.path.exists(local_file):
-        ds = xr.open_dataset(local_file).isel(time=0)  # remove time here
+    if file is None:
+        file = datafiles['SST'].format(year, month)
+    if os.path.exists(file):
+        ds = xr.open_dataset(file).isel(time=0)  # remove time here
         vars = ds.data_vars
         if 'analysed_sst' in vars:
             ds = ds.rename({'analysed_sst': 'sst'})
@@ -259,7 +270,7 @@ def open_sst_monthly(year, month, load=False, use_plm_sst=USE_PML_SST):
     
     if load:
         ds.load()
-    ds.to_netcdf(local_file)
+    ds.to_netcdf(file)
     ds = ds.isel(time=0)  # remove time dimension
     return ds
 
@@ -292,23 +303,29 @@ def savenc(ds, file, complevel=5):
         ds.to_netcdf(file, encoding=encoding)
 
 
-def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True):
+def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True,
+                          dtsfile=None,
+                          #bathyfile=None,
+                          sstfile=None,
+                          ppfile=None,
+                          ocfile=None,
+                          sssfile=None):
     """Generate monthly dataset to be used as input to the DOC model."""
 
     # rename = {'so': 'salt', 'sst': 'temp', 'bathymetry': 'depth'}
     rename = {'so': 'salt', 'sst': 'temp'}
     
-    dts = open_dts().load()
-    # depths = open_bathymetry().load()
-    oc = open_oc(year, month, vars=Rrs, load=load)
-    npp = open_pp(year, month, load=load).astype(DTYPE)
+    dts = open_dts(file=dtsfile).load()
+    # depths = open_bathymetry(file=bathyfile).load()
+    oc = open_oc(year, month, vars=Rrs, load=load, file=ocfile)
+    npp = open_pp(year, month, load=load, file=ppfile).astype(DTYPE)
     if coarsen > 0:
         npp = npp.coarsen(lon=coarsen, lat=coarsen).mean()
     #par = open_par(year, month)
-    sss = open_salinity(year, month, load=load).astype(DTYPE)
+    sss = open_salinity(year, month, load=load, file=sssfile).astype(DTYPE)
     # PML version of SST from Bror
     #sst = (pmlsst(year, month) - 273.15).isel(time=0)
-    sst = open_sst_monthly(year, month, load=load)
+    sst = open_sst_monthly(year, month, load=load, file=sstfile)
 
     # scale all to same as NPP (1/12°)
     sss = sss.reindex_like(npp, method='nearest')
@@ -319,10 +336,13 @@ def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True):
     # depth = depths.reindex_like(npp, method='nearest')
 
     # combine all
-    out = sss.to_dataset().merge(npp)
-    # out = out.merge(par2, compat='override')
+    # out = sss.to_dataset().merge(npp, compat='override')
+    out = oc
     out = out.merge(oc, compat='override')
     out = out.merge(sst, compat='override')
+    out = out.merge(sss, compat='override')
+    out = out.merge(npp, compat='override')
+    # out = out.merge(par2, compat='override')
     out = out.merge(dts, compat='override')
     # out = out.merge(depth, compat='override')
     
