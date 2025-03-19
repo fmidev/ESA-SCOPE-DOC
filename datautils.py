@@ -209,6 +209,8 @@ def open_pp(year, month, load=False, file=None):
         request.urlretrieve(remote_file, local_file)
 
     da = xr.open_dataset(local_file)['pp']
+    if "time" not in da.dims:
+        da = da.expand_dims({'time': [np.datetime64(f'{year}-{month:02d}-15', 'ns')]})
     if load:
         da.load()
     return da.isel(time=0) # .astype(DTYPE)
