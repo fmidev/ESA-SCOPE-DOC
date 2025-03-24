@@ -199,8 +199,8 @@ def open_bathymetry(file=None, load=True):
 
 # Phytoplankton Primary Production
 def open_pp(year, month, load=False, file=None):
-    ppdir = CACHE_DIR
-    os.makedirs(ppdir, exist_ok=True)
+    #ppdir = CACHE_DIR
+    #os.makedirs(ppdir, exist_ok=True)
 
     remote_file = urls['pp'].format(year, month)
     if file is None:
@@ -220,8 +220,8 @@ def open_pp(year, month, load=False, file=None):
 
 # Daily Mean Photosynthetically Available Radiation
 def open_par(year, month, load=False, file=None):
-    pardir = CACHE_DIR
-    os.makedirs(pardir, exist_ok=True)
+    #pardir = CACHE_DIR
+    #os.makedirs(pardir, exist_ok=True)
 
     remote_file = urls['par'].format(year, month)
     if file is None:
