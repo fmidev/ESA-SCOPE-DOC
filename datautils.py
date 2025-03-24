@@ -112,6 +112,8 @@ def open_oc(year, month, vars=Rrs, load=True, file=None):
         ds.to_netcdf(file)
     else:  # load all variables from local file
         ds = xr.open_dataset(file)[vars]
+        if "time" in ds.dims:
+            ds = ds.isel(time=0)
     if load:
         ds.load()
     return ds
