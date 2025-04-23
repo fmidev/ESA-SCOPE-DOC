@@ -69,7 +69,7 @@ Data is aggregated monthly and to 1/24° spatial lon-lat grid and filtered using
 
     0 < DOC ≤ 100, -70° ≤ LON ≤ 70°, pressure ≤ 30
 
-The usable in-situ has 1929 rows × 18 columns. OC Rrs, PP, salinity, SST, dts, and depth are interporlated from monthly global data to the aggregated in-situ loctions using nearest neighbour method.
+The usable in-situ has 1929 rows × 18 columns. OC Rrs, PP, salinity, SST, dts, and depth are interpolated from monthly global data to the aggregated in-situ locations using nearest neighbour method.
 
 ### Distance to shore and land-sea-mask
 
