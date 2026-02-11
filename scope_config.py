@@ -4,7 +4,7 @@ import os
 from numpy import float32
 
 # data parameters used in model training
-shorelimit = 300  # km, use olu data this far from shore
+shorelimit = 300  # km, use only data this far from shore
 doclimit = 100  # max doc value in input data
 doclimit2 = 400
 docmin = 40  # min doc value in input data
@@ -14,7 +14,7 @@ mindepth = 100  # minimum depth for data
 maxsalt = 50 # max salinity value
 minsalt = 30  # min salinity value
 
-# defaults data type
+# default data type
 DTYPE = float32
 
 # directory for permanent data
@@ -46,7 +46,7 @@ datafiles = {
 }
 
 # URLs for the original data sources
-# These are used to donwload the data if local data is not available
+# These are used to download the data if local data is not available
 # data urls, parameters 0 = year, 1 = month, 2 = day
 urls = {
     'oc_daily': 'http://www.oceancolour.org/thredds/dodsC/CCI_ALL-v6.0-DAILY',

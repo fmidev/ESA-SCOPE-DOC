@@ -312,6 +312,7 @@ def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True,
                           #bathyfile=None,
                           sstfile=None,
                           ppfile=None,
+                          parfile=None,
                           ocfile=None,
                           sssfile=None):
     """Generate monthly dataset to be used as input to the DOC model."""
@@ -325,7 +326,7 @@ def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True,
     npp = open_pp(year, month, load=load, file=ppfile).astype(DTYPE)
     if coarsen > 0:
         npp = npp.coarsen(lon=coarsen, lat=coarsen).mean()
-    #par = open_par(year, month)
+    par = open_par(year, month, load=load, file=parfile).astype(DTYPE)
     sss = open_salinity(year, month, load=load, file=sssfile).astype(DTYPE)
     # PML version of SST from Bror
     #sst = (pmlsst(year, month) - 273.15).isel(time=0)
@@ -334,7 +335,7 @@ def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True,
     # scale all to same as NPP (1/12°)
     sss = sss.reindex_like(npp, method='nearest')
     oc = oc.reindex_like(npp, method='nearest')
-    #par = par.reindex_like(npp, method='nearest')
+    par = par.reindex_like(npp, method='nearest')
     sst = sst.reindex_like(npp, method='nearest')
     dts = dts.reindex_like(npp, method='nearest')
     # depth = depths.reindex_like(npp, method='nearest')
@@ -346,7 +347,7 @@ def generate_monthly_data(year, month, Rrs=Rrs, coarsen=0, load=True,
     out = out.merge(sst, compat='override')
     out = out.merge(sss, compat='override')
     out = out.merge(npp, compat='override')
-    # out = out.merge(par2, compat='override')
+    out = out.merge(par, compat='override')
     out = out.merge(dts, compat='override')
     # out = out.merge(depth, compat='override')
     
